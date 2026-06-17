@@ -1,0 +1,197 @@
+                    </table>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="system-status-grid">
+                <div class="system-status-card">
+                    <h3>Total Trades Executed</h3>
+                    <div class="value" id="totalTrades">—</div>
+                </div>
+                <div class="system-status-card">
+                    <h3>System Status</h3>
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        <span class="status-text">Operational</span>
+                    </div>
+                </div>
+                <div class="system-status-card">
+                    <h3>Average Spread</h3>
+                    <div class="value" id="avgSpread">—</div>
+                </div>
+            </div>
+        </main>
+    </div><!-- /adminPage -->
+
+
+    <script>
+
+    let selectedTicker = 'AAPL';
+    let isDarkMode = false;
+    let currentPage = 'trader';
+
+    // ---- Init ----
+    function init() {
+        window.history.replaceState({}, '', window.location.pathname);
+        renderStockList('');
+        populateTickerSelects();
+        updateEstimate('buy');
+        updateEstimate('sell');
+        showFlashFromURL();
+
+        // Live search (client-side filtering; form submit sends to CGI)
+        document.getElementById('stockSearch').addEventListener('input', e => renderStockList(e.target.value));
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+            });
+        });
+
+        // Page navigation
+        document.getElementById('goToAdmin').addEventListener('click', () => showPage('admin'));
+        document.getElementById('backToTrading').addEventListener('click', () => showPage('trader'));
+
+        // Theme toggles
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        document.getElementById('themeToggleAdmin').addEventListener('click', toggleTheme);
+    }
+
+    // ---- Flash messages from URL (set by CGI redirect) ----
+    function showFlashFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const msg  = params.get('flash');
+        const type = params.get('flash_type') || 'success';
+        if (!msg) return;
+        const banner = document.getElementById('flashBanner');
+        banner.className = 'flash flash-' + type;
+        banner.textContent = decodeURIComponent(msg);
+        banner.style.display = 'block';
+        setTimeout(() => { banner.style.display = 'none'; }, 4000);
+        // Clean URL without reload
+        const clean = window.location.pathname;
+        window.history.replaceState({}, '', clean);
+    }
+
+    // ---- Stock list ----
+    function renderStockList(query) {
+        const q = (query || '').toLowerCase();
+        const filtered = stocks.filter(s =>
+            s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+        );
+        const list = document.getElementById('stockList');
+        if (!filtered.length) {
+            list.innerHTML = '<p style="text-align:center; color:var(--muted-foreground); padding:1.5rem 0; font-size:0.875rem;">No stocks found</p>';
+            return;
+        }
+        list.innerHTML = filtered.map(s => {
+            const spread = (s.currentPrice * 0.002).toFixed(2);
+            const bid = (s.currentPrice - spread / 2).toFixed(2);
+            const ask = (s.currentPrice + spread / 2).toFixed(2);
+            const cc  = s.change >= 0 ? 'positive' : 'negative';
+            return `
+                <div class="stock-item${s.ticker === selectedTicker ? ' selected' : ''}"
+                     style="cursor:pointer" onclick="selectTicker('${s.ticker}')">
+                    <div class="stock-header">
+                        <div class="stock-info">
+                            <h4>${s.name}</h4>
+                            <p class="stock-ticker">${s.ticker}</p>
+                        </div>
+                        <div class="stock-price">
+                            <div class="price">$${s.currentPrice.toFixed(2)}</div>
+                            <div class="price-change ${cc}">${s.change >= 0 ? '+' : ''}${s.changePercent.toFixed(2)}%</div>
+                        </div>
+                    </div>
+                    <div class="stock-details">
+                        <div class="detail-item"><span class="detail-label">Bid</span><span class="bid-value">$${bid}</span></div>
+                        <div class="detail-item"><span class="detail-label">Ask</span><span class="ask-value">$${ask}</span></div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function selectTicker(ticker) {
+        selectedTicker = ticker;
+        document.getElementById('buyTicker').value  = ticker;
+        document.getElementById('sellTicker').value = ticker;
+        renderStockList(document.getElementById('stockSearch').value);
+        updateEstimate('buy');
+        updateEstimate('sell');
+    }
+
+    // ---- Ticker selects ----
+    function populateTickerSelects() {
+        const opts = stocks.map(s =>
+            `<option value="${s.ticker}"${s.ticker === selectedTicker ? ' selected' : ''}>${s.ticker} - ${s.name}</option>`
+        ).join('');
+        document.getElementById('buyTicker').innerHTML  = opts;
+        document.getElementById('sellTicker').innerHTML = opts;
+    }
+
+    function syncTicker(side) {
+        const val = document.getElementById(side + 'Ticker').value;
+        selectedTicker = val;
+        const other = side === 'buy' ? 'sell' : 'buy';
+        document.getElementById(other + 'Ticker').value = val;
+        renderStockList(document.getElementById('stockSearch').value);
+        updateEstimate(side);
+        updateEstimate(other);
+    }
+
+    // ---- Order type radio styling ----
+    function handleBuyOrderType(radio) {
+        document.getElementById('buyMarketLabel').classList.toggle('checked', radio.value === 'market');
+        document.getElementById('buyLimitLabel').classList.toggle('checked',  radio.value === 'limit');
+        document.getElementById('buyLimitPriceGroup').classList.toggle('hidden', radio.value === 'market');
+        updateEstimate('buy');
+    }
+
+    function handleSellOrderType(radio) {
+        document.getElementById('sellMarketLabel').classList.toggle('checked', radio.value === 'market');
+        document.getElementById('sellLimitLabel').classList.toggle('checked',  radio.value === 'limit');
+        document.getElementById('sellLimitPriceGroup').classList.toggle('hidden', radio.value === 'market');
+        updateEstimate('sell');
+    }
+
+    // ---- Estimated total ----
+    function updateEstimate(side) {
+        const stock  = stocks.find(s => s.ticker === selectedTicker);
+        if (!stock) return;
+        const shares     = parseFloat(document.getElementById(side + 'Shares').value) || 0;
+        const limitInput = document.getElementById(side + 'LimitPrice');
+        const limitPrice = parseFloat(limitInput ? limitInput.value : 0) || 0;
+        const isLimit    = document.querySelector(`#${side}Tab input[name="order_type"][value="limit"]`).checked;
+        const price      = isLimit && limitPrice > 0 ? limitPrice : stock.currentPrice;
+        const total      = shares * price;
+        const spread     = (stock.currentPrice * 0.002).toFixed(2);
+        document.getElementById(side + 'EstimatedTotal').textContent = '$' + total.toFixed(2);
+        document.getElementById(side + 'Spread').textContent         = '$' + spread;
+    }
+
+    // ---- Page switching ----
+    function showPage(page) {
+        currentPage = page;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(page === 'trader' ? 'traderPage' : 'adminPage').classList.add('active');
+    }
+
+    // ---- Theme ----
+    function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        document.body.classList.toggle('dark', isDarkMode);
+        const moonPath = 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z';
+        const sunPath  = 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z';
+        ['themeIcon','themeIconAdmin'].forEach(id => {
+            document.getElementById(id).innerHTML =
+                `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${isDarkMode ? sunPath : moonPath}"/>`;
+        });
+    }
+
+    init();
+    </script>
+</body>
+</html>

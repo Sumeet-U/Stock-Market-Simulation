@@ -1,0 +1,9 @@
+--------MOCK TEST RESULTS--------
+Total Bids      : 0
+Total Asks      : 0
+Completed Trades: 0
+Active Orders   : 936
+Avg Spread (¢)  : 0
+Last Order ID   : 7055
+Errors          : 0
+=================================

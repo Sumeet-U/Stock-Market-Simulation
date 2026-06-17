@@ -1,0 +1,105 @@
+                    </div>
+                </div>
+
+            </div><!-- /grid -->
+        </main>
+    </div><!-- /traderPage -->
+
+
+    <!-- =================== ADMIN PAGE =================== -->
+    <div id="adminPage" class="page">
+        <header class="header">
+            <div class="header-container">
+                <div class="logo-section">
+                    <div class="logo">
+                        <svg class="logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Admin Dashboard</h1>
+                        <p>System Analytics &amp; Monitoring</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-icon" id="themeToggleAdmin" type="button">
+                        <svg class="icon" id="themeIconAdmin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                    </button>
+                    <button class="btn" type="button" id="backToTrading">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Trading
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!--
+                In production, these stat values would be injected by your CGI script.
+                The JS below provides a static demo using the same mock data.
+                CGI endpoint: GET /cgi-bin/admin.cgi?action=dashboard
+            -->
+            <div class="stat-cards">
+                <div class="stat-card blue">
+                    <div class="stat-card-content">
+                        <p>Total Stocks</p>
+                        <div class="value" id="totalStocks">6</div>
+                    </div>
+                    <svg class="stat-card-icon blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <div class="stat-card emerald">
+                    <div class="stat-card-content">
+                        <p>Total Bids</p>
+                        <div class="value" id="totalBids">—</div>
+                    </div>
+                    <svg class="stat-card-icon emerald" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-card-content">
+                        <p>Total Asks</p>
+                        <div class="value" id="totalAsks">—</div>
+                    </div>
+                    <svg class="stat-card-icon blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                </div>
+                <div class="stat-card gray">
+                    <div class="stat-card-content">
+                        <p>Active Orders</p>
+                        <div class="value" id="activeOrders">—</div>
+                    </div>
+                    <svg class="stat-card-icon gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Stock Table -->
+            <div class="admin-table-container">
+                <div class="admin-table-header">
+                    <h2>Stock Overview</h2>
+                    <p>Live order book statistics</p>
+                </div>
+                <div class="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Company</th>
+                                <th>Active Bids</th>
+                                <th>Active Asks</th>
+                                <th>Best Bid</th>
+                                <th>Best Ask</th>
+                                <th>Spread</th>
+                                <th>Current Price</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody"></tbody>
